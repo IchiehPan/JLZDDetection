@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+<head>
+    <title></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Cache-Control" content="no-cache, must-revalidate" />
+    <meta http-equiv="Expires" content="0" />
+</head>
+<style type="text/css">
+html, body {
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+.plugin {
+    width: 300px;
+    height: 200px;
+}
+</style>
+<body>
+    <div id="divPlugin" class="plugin"></div>
+</body>
+<script src="../js/jquery-1.7.1.min.js"></script>
+<script src="../js/webVideoCtrl.js"></script>
+<script>
+
+$(function () {
+
+    var oPlugin = {
+        iWidth: 300,            // plugin width
+        iHeight: 200            // plugin height
+    };
+    
+    // ��ʼ�����������������
+    WebVideoCtrl.I_InitPlugin(oPlugin.iWidth, oPlugin.iHeight, {
+        bWndFull: true,//�Ƿ�֧�ֵ�����˫��ȫ����Ĭ��֧�� true:֧�� false:��֧��
+        iWndowType: 1,
+        cbInitPluginComplete: function () {
+            WebVideoCtrl.I_InsertOBJECTPlugin("divPlugin");
+        }
+    });
+
+});
+
+</script>
+</html>

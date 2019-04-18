@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+
+<style>
+  .myCanvas{
+     border:1px solid black;
+     height:100px;
+     width:100px;
+     position:absolute;
+     z-index:999
+  }
+
+</style>
+<body>
+
+ <object type='application/x-vlc-plugin' id='vlc' events='True' width="720" height="540" pluginspage="http://www.videolan.org" codebase="./static/vlc-3.0.3-1.tar.xz">
+  <param name='mrl' value='rtsp://admin:jhd123456@192.168.8.65:554/h264/ch33/sub/av_stream' />
+  <param name='volume' value='50' />
+  <param name="wmode" value="transparent">  
+  <param name='autoplay' value='true' />
+  <param name='loop' value='false' />
+  <param name='fullscreen' value='false' />
+</object>
+</body>
+<script type="text/javascript">
+
+
+
+</script>
+</html>

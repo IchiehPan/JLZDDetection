@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title></title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate" />
+<meta http-equiv="Expires" content="0" />
+</head>
+<style>
+.plugin {
+	width: 600px;
+	height: 400px;
+	position: absolute;
+	z-index: -1;
+	visibility: inherit;
+}
+
+.myCanvas {
+	width: 600px;
+	height: 400px;
+	position: absolute;
+	z-index: 999
+}
+</style>
+<body>
+
+	<!--   <canvas id="myCanvas" class="myCanvas"></canvas> -->
+
+	<div id="divPlugin" class="plugin"></div>
+
+
+	<input id="username" type="hidden" th:value="${username}" />
+	<input id="password" type="hidden" th:value="${password}" />
+	<input id="deviceIp" type="hidden" th:value="${deviceIp}" />
+	<input id="width" type="hidden" th:value="${width}" />
+	<input id="height" type="hidden" th:value="${height}" />
+	<!-- <input id="text" type="text" />
+    <button onclick="send()">Send</button>  -->
+
+</body>
+<script src="../../js/jquery-1.7.1.min.js"></script>
+<script src="../../js/webVideoCtrl.js"></script>
+<script>
+var g_iWndIndex = 0;
+var Width = $("#width").val(); var Height = $("#height").val();
+var userID=$("#deviceIp").val();
+var websocket=null; var count=1; var serialnumer;
+$(function () {
+    // 检查插件是否已经安装过
+    var iRet = WebVideoCtrl.I_CheckPluginInstall();
+    if (-1 == iRet) {
+        alert("您还未安装过插件，双击开发包目录里的WebComponentsKit.exe安装！");
+        return;
+    }
+
+    
+    var oPlugin = {
+        iWidth: $("#width").val(),             // plugin width
+        iHeight: $("#height").val()             // plugin height
+    };
+
+    var oLiveView = {
+        iProtocol: 1,            // protocol 1：http, 2:https
+        szIP: $("#deviceIp").val(),    // protocol ip
+        szPort: "80",            // protocol port
+        szUsername: $("#username").val(),     // device username
+        szPassword: $("#password").val(), // device password
+        iStreamType: 1,          // stream 1：main stream  2：sub-stream  3：third stream  4：transcode stream
+        iChannelID: 1,           // channel no
+        bZeroChannel: false      // zero channel
+    };
+    
+   
+ 
+        
+    // 初始化插件参数及插入插件
+    WebVideoCtrl.I_InitPlugin(oPlugin.iWidth, oPlugin.iHeight, {
+        bWndFull: true,//是否支持单窗口双击全屏，默认支持 true:支持 false:不支持
+        iWndowType: 1,
+        cbSelWnd: function (xmlDoc) {
+            g_iWndIndex = parseInt($(xmlDoc).find("SelectWnd").eq(0).text(), 10);
+          
+        },
+        cbInitPluginComplete: function () {
+            WebVideoCtrl.I_InsertOBJECTPlugin("divPlugin");
+
+            // 检查插件是否最新
+            if (-1 == WebVideoCtrl.I_CheckPluginVersion()) {
+                alert("检测到新的插件版本，双击开发包目录里的WebComponentsKit.exe升级！");
+                return;
+            }
+
+            // 登录设备
+            WebVideoCtrl.I_Login(oLiveView.szIP, oLiveView.iProtocol, oLiveView.szPort, oLiveView.szUsername, oLiveView.szPassword,
+            		{
+                success: function (xmlDoc) {
+                    // 开始预览
+                   
+                    var szDeviceIdentify = oLiveView.szIP + "_" + oLiveView.szPort;
+                    setTimeout(function () {
+                        WebVideoCtrl.I_StartRealPlay(szDeviceIdentify, {
+                            iStreamType: oLiveView.iStreamType,
+                            iChannelID: oLiveView.iChannelID,
+                            bZeroChannel: oLiveView.bZeroChannel
+                        });
+                    }, 1000);
+                    
+                  
+                    
+                    $.ajax({
+                		url:"/hkversion/login",
+                		type:"post",
+                		data:{"username":$("#username").val(),"password":$("#password").val(),"deviceip":$("#deviceIp").val()},
+                		success: function(data){              			
+                				if(data=="login fail")	
+                					{alert($("#deviceIp").val()+"login fail")}
+                			/* 	$.ajax({
+                					url:"/startGuard?ip="+$("#deviceIp").val(),
+                					type:"get",
+                					success:function(data){
+                						console.log(data)
+                						
+                					}
+                					
+                				}) */
+                				
+                				/*  WebVideoCtrl.I_PlaySlow();
+                				 WebVideoCtrl.I_PlaySlow();
+                				 WebVideoCtrl.I_PlaySlow();
+                				 WebVideoCtrl.I_PlaySlow();
+                				 WebVideoCtrl.I_PlaySlow();
+                				 WebVideoCtrl.I_PlaySlow(); */
+                				
+                		},
+                			error: function () {
+                				console.log(" 后台登录失败！");
+                			}
+                		});
+                }
+            });
+        }
+    });
+   
+   
+
+    
+    // 关闭浏览器
+    $(window).unload(function () {
+        WebVideoCtrl.I_Stop();
+    });
+    //创建WebSocket
+   // connectWebSocket();
+    
+});
+
+ $(function() {
+	
+ 
+  })
+  
+   //强制关闭浏览器  调用websocket.close（）,进行正常关闭
+ window.onunload = function() {
+   	 
+   //关闭连接   
+    closeWebSocket();    
+    }
+   
+  //建立WebSocket连接
+  function connectWebSocket(){
+  	
+	console.log("开始...");
+      
+      //建立webSocket连接
+       websocket = new WebSocket("ws://192.168.8.250:8083/myHandler/ID="+$("#deviceIp").val());
+      
+      //打开webSokcet连接时，回调该函数
+      websocket.onopen = function () {      
+        console.log("onpen");  
+       }
+       
+       //关闭webSocket连接时，回调该函数
+       websocket.onclose = function () {
+       //关闭连接    
+       console.log("onclose");
+       }
+	
+	   //接收信息
+       websocket.onmessage = function (msg) {
+    	  
+    	    WebVideoCtrl.I_ClearSnapInfo(0); 
+    	if(msg.data!=1&&msg.data!=null){
+    	  	//console.log(msg.data);
+            var json_node=$.parseJSON(msg.data);
+            //console.log(json_node);
+        	 var rate1 = json_node.width/Width;
+        	 var rate2 = json_node.height/Height;
+        	 var x1 = json_node.bbox[0]/rate1/Width;var y1 = json_node.bbox[1]/rate2/Height;
+        	 var x2 = json_node.bbox[2]/rate1/Width;var y2 = json_node.bbox[3]/rate2/Height; 
+      
+             var circlePostion = [
+            	{x:x1,y:y1},
+            	{x:x2,y:y1},
+            	{x:x2,y:y2},
+            	{x:x1,y:y2}
+            	
+            ]; 
+            var timestamp = Date.parse(new Date()); 
+         	peopleSnapPolygon(circlePostion);   	
+        }else{
+        	 WebVideoCtrl.I_ClearSnapInfo(0);
+        	
+        }
+       } 
+  }
+  
+   function drawRect(x,y,width,height){
+	  var c=document.getElementById("myCanvas");
+	  var ctx=c.getContext("2d");
+	  ctx.strokeStyle="green";
+	  ctx.lineWidth="1";
+	  ctx.strokeRect(x,y,width,height);
+	  
+  }
+  
+  function formatDateTime(inputTime) {  
+	    var date = new Date(inputTime);
+	    var y = date.getFullYear();  
+	    var m = date.getMonth() + 1;  
+	    m = m < 10 ? ('0' + m) : m;  
+	    var d = date.getDate();  
+	    d = d < 10 ? ('0' + d) : d;  
+	    var h = date.getHours();
+	    h = h < 10 ? ('0' + h) : h;
+	    var minute = date.getMinutes();
+	    var second = date.getSeconds();
+	    minute = minute < 10 ? ('0' + minute) : minute;  
+	    second = second < 10 ? ('0' + second) : second; 
+	    return y + '-' + m + '-' + d+' '+h+':'+minute+':'+second;  
+	};
+  
+  function GetDeviceInfo() {
+	    var szDeviceIdentify = $("#deviceIp").val()+"_80";
+
+	    if (null == szDeviceIdentify) {
+	        return;
+	    }
+
+	    WebVideoCtrl.I_GetDeviceInfo(szDeviceIdentify, {
+	        success: function (xmlDoc) {
+	            serialnumer  = $(xmlDoc).find("serialNumber").eq(0).text().substring(3);
+	            console.log(serialnumer);
+
+	        },
+	        error: function (status, xmlDoc) {
+	            showOPInfo(szDeviceIdentify + " 获取设备信息失败！", status, xmlDoc);
+	        }
+	    });
+	}
+  
+  function peopleSnapPolygon(circlePostion){
+  	var iRet = WebVideoCtrl.I_SetPlayModeType(6);// 多边形模式
+  	WebVideoCtrl.I_ClearSnapInfo(0);
+  	
+  	var szInfo = "<?xml version='1.0' encoding='utf-8'?>";
+      szInfo += "<SnapPolygonList>";
+      szInfo += "<SnapPolygon>";
+      szInfo += "<id>1</id>";
+      szInfo += "<polygonType>1</polygonType>";
+      szInfo += "<tips></tips>";
+      szInfo += "<isClosed>true</isClosed>";
+      szInfo += "<color><r>255</r><g>255</g><b>255</b></color>";
+      szInfo += "<pointList>";
+      for(var i=0;i<circlePostion.length;i++){
+      	 szInfo += "<point><x>"+circlePostion[i].x+"</x><y>"+circlePostion[i].y+"</y></point>";
+      }
+      szInfo += "</pointList>";
+      szInfo += "</SnapPolygon>";
+      szInfo += "</SnapPolygonList>";
+      
+      var iRet = WebVideoCtrl.I_SetSnapPolygonInfo(g_iWndIndex, szInfo);
+      if (0 === iRet) {
+         // console.log("窗口" + g_iWndIndex + "设置图形成功！");
+      } else if (-1 === iRet) {
+      //	console.log("窗口" + g_iWndIndex + "设置图形失败！");
+      } else if (-2 === iRet) {
+        //  alert("参数错误！");
+      } else if (-3 === iRet) {
+        //  alert("图形个数达到上限！");
+      } else if (-4 === iRet) {
+         // alert("图形ID已存在！");
+      }
+  	
+  }
+
+  
+  
+  //发送消息
+  function send(){
+     var postValue={};
+     postValue.id=userID;
+     postValue.message="success"; 	
+     postValue.number=count;
+     postValue.seserialnumer = serialnumer;
+     websocket.send(JSON.stringify(postValue));
+  }
+  //关闭连接
+  function closeWebSocket(){
+  	 if(websocket != null) {
+            websocket.close();
+        }
+  }
+
+  
+</script>
+</html>

@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title></title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate" />
+<meta http-equiv="Expires" content="0" />
+</head>
+<style>
+.plugin {
+	width: 600px;
+	height: 400px;
+	position: absolute;
+	z-index: -1;
+	visibility: inherit;
+}
+
+.myCanvas {
+	width: 600px;
+	height: 400px;
+	position: absolute;
+	z-index: 999
+}
+</style>
+<body>
+
+	<!--   <canvas id="myCanvas" class="myCanvas"></canvas> -->
+
+	<div id="divPlugin" class="plugin"></div>
+
+
+	<input id="width" type="hidden" th:value="${width}" />
+	<input id="height" type="hidden" th:value="${height}" />
+
+
+</body>
+<script src="../../js/jquery-1.7.1.min.js"></script>
+<script src="../../js/webVideoCtrl.js"></script>
+<script>
+var g_iWndIndex = -1;var Videonumber = 1;
+var Width = $("#width").val(); var Height = $("#height").val();
+
+$(function () {
+    // 检查插件是否已经安装过
+    var iRet = WebVideoCtrl.I_CheckPluginInstall();
+    if (-1 == iRet) {
+        alert("您还未安装过插件，双击开发包目录里的WebComponentsKit.exe安装！");
+        return;
+    }
+
+    
+    var oPlugin = {
+        iWidth: $("#width").val(),             // plugin width
+        iHeight: $("#height").val()             // plugin height
+    };
+
+    
+   
+    var oLiveViews = [
+    	   {
+            iProtocol: 1,            // protocol 1：http, 2:https
+            szIP: "192.168.8.65",    // protocol ip
+            szPort: "80",            // protocol port
+            szUsername: "admin",   // device username
+            szPassword: "jhd123456", // device password
+            iStreamType: 1,          // stream 1：main stream  2：sub-stream  3：third stream  4：transcode stream
+            iChannelID: 0,           // channel no
+            bZeroChannel: false,    // zero channel
+           
+        } , 
+        {
+            iProtocol: 1,            // protocol 1：http, 2:https
+            szIP: "192.168.8.176",    // protocol ip
+            szPort: "80",            // protocol port
+            szUsername: "admin",     // device username
+            szPassword: "jhd123456", // device password
+            iStreamType: 1,          // stream 1：main stream  2：sub-stream  3：third stream  4：transcode stream
+            iChannelID: 0,           // channel no
+            bZeroChannel: false,      // zero channel
+           
+        }
+        , 
+        {
+            iProtocol: 1,            // protocol 1：http, 2:https
+            szIP: "192.168.8.240",    // protocol ip
+            szPort: "80",            // protocol port
+            szUsername: "admin",     // device username
+            szPassword: "Jhd123456", // device password
+            iStreamType: 1,          // stream 1：main stream  2：sub-stream  3：third stream  4：transcode stream
+            iChannelID: 0,           // channel no
+            bZeroChannel: false,      // zero channel
+           
+        }
+        
+    	
+    ];
+    
+   $.ajax({
+  		url:"http://192.168.8.48:8222/surveillance_manage/surveillance_default_group_api/",
+  		type:"get",
+  		async:false,
+  		success:function(data){
+  			//console.log(data.data);
+  			oLiveViews = data.data;
+  		},
+  		error:function(data){
+  			console.log(data)
+  		}
+    });
+   
+   
+        
+    // 初始化插件参数及插入插件
+    WebVideoCtrl.I_InitPlugin(oPlugin.iWidth, oPlugin.iHeight, {
+        bWndFull: true,//是否支持单窗口双击全屏，默认支持 true:支持 false:不支持
+        iWndowType: 2,
+        cbSelWnd: function (xmlDoc) {
+           /*  g_iWndIndex = parseInt($(xmlDoc).find("SelectWnd").eq(0).text(), 10); */
+            
+           
+        },
+        cbInitPluginComplete: function () {
+            WebVideoCtrl.I_InsertOBJECTPlugin("divPlugin");
+
+            // 检查插件是否最新
+            if (-1 == WebVideoCtrl.I_CheckPluginVersion()) {
+                alert("检测到新的插件版本，双击开发包目录里的WebComponentsKit.exe升级！");
+                return;
+            }  
+          
+            // 登录设备
+            for(var oLiveView in oLiveViews){
+            	Login(oLiveViews[oLiveView]);    
+            	
+            }
+          
+            function Login(oLiveView){
+           	 WebVideoCtrl.I_Login(oLiveView.szIP, oLiveView.iProtocol, oLiveView.szPort, oLiveView.szUsername, oLiveView.szPassword,
+              		{
+                  success: function (xmlDoc) {
+                      // 开始预览
+                      
+                      var szDeviceIdentify = oLiveView.szIP + "_" + oLiveView.szPort;
+                  
+                      if(oLiveView.iChannelID==0){
+                    	  
+                    	  getChannel(szDeviceIdentify,oLiveView);
+                      }else{
+                    	
+                    	  showView(szDeviceIdentify,oLiveView.iStreamType,oLiveView.iChannelID,
+                    			  oLiveView.bZeroChannel,g_iWndIndex)
+                    			  
+                    	var iType = gettypenum(oLiveViews.length);
+          	            WebVideoCtrl.I_ChangeWndNum(iType);
+          	          
+                      }
+                     
+                      $.ajax({
+                  		url:"/hkversion/login",
+                  		type:"post",
+                  		data:{"username":oLiveView.szUsername,"password":oLiveView.szPassword,"deviceip":oLiveView.szIP},
+                  		success: function(data){              			
+                  				if(data=="login fail")	
+                  					{
+                  					        alert( $("#deviceIp").val()+"login fail" )
+                  					
+                  					}
+                  			/* 	$.ajax({
+                  					url:"/startGuard?ip="+$("#deviceIp").val(),
+                  					type:"get",
+                  					success:function(data){
+                  						console.log(data)
+                  						
+                  					}
+                  					
+                  				}) */              				
+                  		},
+                  		error: function () {
+                  				console.log(" 后台登录失败！");
+                  		}
+                  		});
+                  },error:function(xmlDoc){
+                	  
+                	  alert("login fail ,username or password error"+oLiveView.szIP);
+                	  
+                  }
+              });
+            	
+            	
+            }
+	
+       }
+           
+    });
+   
+    function showView(szDeviceIdentify,iStreamType,iChannelID,bZeroChannel,index){
+    	  g_iWndIndex = index+1;
+    	  WebVideoCtrl.I_StartRealPlay(szDeviceIdentify, {
+          	   iWndIndex:g_iWndIndex,
+               iStreamType: iStreamType,
+               iChannelID: iChannelID,
+               bZeroChannel: bZeroChannel
+           });
+       }
+    
+    
+   function getChannel(szDeviceIdentify,oLiveView){
+	// 数字通道
+	 
+	    WebVideoCtrl.I_GetDigitalChannelInfo(szDeviceIdentify, {
+	        async: false,
+	        success: function (xmlDoc) {
+	            var oChannels = $(xmlDoc).find("InputProxyChannelStatus");
+	            Videonumber = Videonumber+oChannels.length;	            
+	            var iType = gettypenum(Videonumber);
+	            WebVideoCtrl.I_ChangeWndNum(iType);
+	            $.each(oChannels, function (i) {
+	                var id = $(this).find("id").eq(0).text(),
+	                    name = $(this).find("name").eq(0).text(),
+	                    online = $(this).find("online").eq(0).text();
+	                if ("false" == online) {// 过滤禁用的数字通道
+	                    return true;
+	                }
+	               
+	                showView(szDeviceIdentify,oLiveView.iStreamType,id,oLiveView.bZeroChannel,g_iWndIndex);
+	            });
+	          
+	        },
+	        error: function (status, xmlDoc) {
+	        
+	        	showView(szDeviceIdentify,oLiveView.iStreamType,1,oLiveView.bZeroChannel,g_iWndIndex);
+	        	
+	        	var iType = gettypenum(Videonumber+1);
+	            WebVideoCtrl.I_ChangeWndNum(iType);
+	          
+	        }
+	    });
+	   
+   }
+
+    
+    
+    
+    // 关闭浏览器
+    $(window).unload(function () {
+        WebVideoCtrl.I_Stop();
+    });
+ 
+    
+});
+
+  
+  
+  function gettypenum(Videonumber){
+	  
+	  var num = Math.sqrt(Videonumber);
+	  var Intnum = parseInt(num,10);
+	  if(Intnum==num)
+	  return num;
+	  else
+	  return  Intnum+1;
+	  
+	}
+  
+  function formatDateTime(inputTime) {  
+	    var date = new Date(inputTime);
+	    var y = date.getFullYear();  
+	    var m = date.getMonth() + 1;  
+	    m = m < 10 ? ('0' + m) : m;  
+	    var d = date.getDate();  
+	    d = d < 10 ? ('0' + d) : d;  
+	    var h = date.getHours();
+	    h = h < 10 ? ('0' + h) : h;
+	    var minute = date.getMinutes();
+	    var second = date.getSeconds();
+	    minute = minute < 10 ? ('0' + minute) : minute;  
+	    second = second < 10 ? ('0' + second) : second; 
+	    return y + '-' + m + '-' + d+' '+h+':'+minute+':'+second;  
+	};
+  
+  function GetDeviceInfo() {
+	    var szDeviceIdentify = $("#deviceIp").val()+"_80";
+
+	    if (null == szDeviceIdentify) {
+	        return;
+	    }
+
+	    WebVideoCtrl.I_GetDeviceInfo(szDeviceIdentify, {
+	        success: function (xmlDoc) {
+	            serialnumer  = $(xmlDoc).find("serialNumber").eq(0).text().substring(3);
+	            
+
+	        },
+	        error: function (status, xmlDoc) {
+	            showOPInfo(szDeviceIdentify + " 获取设备信息失败！", status, xmlDoc);
+	        }
+	    });
+	}
+  
+ 
+
+  
+</script>
+</html>

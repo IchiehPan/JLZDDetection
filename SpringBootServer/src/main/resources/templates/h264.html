@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Video.js 5.18.4</title>
+	<link href="../css/video.css" rel="stylesheet">
+	<!-- If you'd like to support IE8 -->
+	<script src="../js/videojs-ie8.js"></script>
+	<style>
+		body{background-color: #191919}
+		.m{ width: 640px; height: 264; margin-left: auto; margin-right: auto; margin-top: 100px; }
+	</style>
+</head>
+
+<body>
+	<div class="m">
+		<video id="my-video" class="video-js" controls preload="auto" width="640" height="264"
+		  poster="MY_VIDEO_POSTER.jpg" data-setup="{}">
+			<source src="rtmp://192.168.8.250:1935/hls/index" type="rtmp/flv"/>  
+			<p class="vjs-no-js">
+			  To view this video please enable JavaScript, and consider upgrading to a web browser that
+			  <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
+			</p>
+		  </video>
+		  <script src="../js/video.js"></script>	
+		  <script src="../js/jquery-1.7.1.min.js"></script>
+		  <script type="text/javascript">
+		  
+		  $.ajax({
+			  
+			  url:"/hkversion/login",
+      		type:"post",
+      		data:{"username":"admin","password":"jhd123456","deviceip":"192.168.8.176"},
+      		success: function(data){              			
+      				if(data=="login fail")	
+      					{alert($("#deviceIp").val()+"login fail")}
+      			  $.ajax({
+      		  		url:"/preview?ip=192.168.8.176",
+      		  		type:"get",
+      		  		async:true,
+      		  		success:function(data){
+      		  		 
+      		  		},
+      		  		error:function(data){
+      		  			console.log(data)
+      		  		}
+      		    });
+      		},
+      			error: function () {
+      				console.log(" 后台登录失败！");
+      			}
+      		
+		  })
+		  
+		
+		  var myPlayer = videojs('my-video');
+			videojs("my-video").ready(function(){
+				var myPlayer = this;
+				myPlayer.play();
+			});
+		
+		</script>
+	</div>
+
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+<head>
+    <title></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Cache-Control" content="no-cache, must-revalidate" />
+    <meta http-equiv="Expires" content="0" />
+    <style type="text/css">
+       /*  iframe {
+            margin: 0;
+            padding: 0;
+            border: 0;
+            width: 300px;
+            height: 200px;
+            position:absolute;
+             z-index:-1;
+        } */
+        
+         .myCanvas{
+         left:50px;
+         top:50px;
+         width:100px;
+         height:100px;
+         position:absolute;
+         z-index:999;
+         border:1px solid black;
+         background-color:transparent;
+        } 
+    </style>
+</head>
+<body>
+    <div  class = "myCanvas" >
+   123
+    <iframe id="iframe1" allowtransparency="true"  src="about:blank" frameBorder="0" marginHeight="0" 
+    marginWidth="0" style="position:absolute; 
+    visibility:hidden top:0px;left:0px;width:100%; height:100%;z-index:-1;background-color:transparent 
+    "></iframe>  
+  </div>
+  <object type='application/x-vlc-plugin' id='vlc' 
+     events='True' width="720" height="540" pluginspage="http://www.videolan.org" 
+     codebase="./static/vlc-3.0.3-1.tar.xz">
+  <param name='mrl' value='rtsp://admin:jhd123456@192.168.8.65:554/h264/ch33/sub/av_stream' />
+  <param name='volume' value='50' />  
+  <param name='autoplay' value='true' />
+  <param name='loop' value='false' />
+  <param name='fullscreen' value='false' />
+</object> 
+</body>
+<script src="../js/jquery-1.7.1.min.js"></script>
+
+<script>
+
+var g_aIframe = $("iframe");
+
+
+</script>
+</html>

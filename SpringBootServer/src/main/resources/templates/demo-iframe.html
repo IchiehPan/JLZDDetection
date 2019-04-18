@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+<head>
+    <title></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Cache-Control" content="no-cache, must-revalidate" />
+    <meta http-equiv="Expires" content="0" />
+    <style type="text/css">
+        iframe {
+            margin: 0;
+            padding: 0;
+            border: 0;
+            width: 300px;
+            height: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <iframe src="small-iframe" frameborder="0" onload="iframeLoaded();"></iframe>
+        <iframe src="small-iframe" frameborder="0" onload="iframeLoaded();"></iframe>
+    </div>
+    <div>
+        <iframe src="small-iframe" frameborder="0" onload="iframeLoaded();"></iframe>
+        <iframe src="small-iframe" frameborder="0" onload="iframeLoaded();"></iframe>
+    </div>
+</body>
+<script src="../js/jquery-1.7.1.min.js"></script>
+<script src="../js/webVideoCtrl.js"></script>
+<script>
+
+var g_aIframe = $("iframe");
+
+$(function () {
+    // ������Ƿ��Ѿ���װ��
+    var iRet = WebVideoCtrl.I_CheckPluginInstall();
+    if (-1 == iRet) {
+        alert("����δ��װ�������˫��������Ŀ¼���WebComponentsKit.exe��װ��");
+        return;
+    }
+
+    // �ر������
+    $(window).unload(function () {
+        $.each(g_aIframe, function (i, oIframe) {
+            getWebVideoCtrl(oIframe).I_Stop();
+        });
+    });
+});
+
+var iLoadedCount = 0;
+var ipscamera = [
+	{"ip":"192.168.8.177","username":"admin","password":"jhd123456"},
+	{"ip":"192.168.8.65","username":"admin","password":"jhd123456"},
+	{"ip":"192.168.8.64","username":"admin","password":"jhd123456"},
+	
+]
+
+function iframeLoaded() {
+    iLoadedCount++;
+      console.log(ipscamera.length);
+    if (4 === iLoadedCount) {
+        var oLiveView = {
+            iProtocol: 1,            // protocol 1��http, 2:https
+            szIP: "192.168.8.177",    // protocol ip
+            szPort: "80",            // protocol port
+            szUsername: "admin",     // device username
+            szPassword: "jhd123456", // device password
+            iStreamType: 2,          // stream 1��main stream  2��sub-stream  3��third stream  4��transcode stream
+            iChannelID: 1,           // channel no
+            bZeroChannel: false      // zero channel
+        };
+
+        $.each(g_aIframe, function (i, oIframe) {
+            var oWebVideoCtrl = getWebVideoCtrl(oIframe);
+            // ��¼�豸
+            oWebVideoCtrl.I_Login(oLiveView.szIP, oLiveView.iProtocol, oLiveView.szPort, oLiveView.szUsername, oLiveView.szPassword, {
+                success: function (xmlDoc) {
+                    // ��ʼԤ��
+                    var szDeviceIdentify = oLiveView.szIP + "_" + oLiveView.szPort;
+                    setTimeout(function () {
+                        oWebVideoCtrl.I_StartRealPlay(oLiveView.szIP, {
+                            iStreamType: oLiveView.iStreamType,
+                            iChannelID: oLiveView.iChannelID,
+                            bZeroChannel: oLiveView.bZeroChannel
+                        });
+                    }, 1000);
+                }
+            });
+        });
+    }
+}
+
+function getWebVideoCtrl(oIframe) {
+    return oIframe.contentWindow.WebVideoCtrl;
+}
+
+</script>
+</html>
