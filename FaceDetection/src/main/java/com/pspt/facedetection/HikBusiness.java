@@ -52,8 +52,7 @@ public class HikBusiness extends HikCommonBusiness {
         return hCNetSDK.NET_DVR_CloseAlarmChan_V30(lAlarmHandle);
     }
 
-    public void alarmDataHandle(NativeLong lCommand, HCNetSDK.NET_DVR_ALARMER pAlarmer, Pointer pAlarmInfo,
-                                int dwBufLen, Pointer pUser) {
+    public void alarmDataHandle(NativeLong lCommand, HCNetSDK.NET_DVR_ALARMER pAlarmer, Pointer pAlarmInfo, int dwBufLen, Pointer pUser) {
         String sAlarmType = new String();
         String[] newRow = new String[3];
         // 报警时间
@@ -69,6 +68,13 @@ public class HikBusiness extends HikCommonBusiness {
         sAlarmType = new String("lCommand=") + lCommand.intValue();
         // lCommand是传的报警类型
         switch (lCommand.intValue()) {
+            case HCNetSDK.COMM_VCA_ALARM: // 智能检测通用报警
+                // TODO
+                while (pAlarmInfo.getByte(0) != -1) ;
+
+
+                break;
+
             case HCNetSDK.COMM_ALARM_FACE_DETECTION: // 人脸侦测报警信息
                 HCNetSDK.NET_DVR_FACE_DETECTION struFaceDetectionAlarm = new HCNetSDK.NET_DVR_FACE_DETECTION();
                 struFaceDetectionAlarm.write();
